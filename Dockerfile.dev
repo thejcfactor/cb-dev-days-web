@@ -1,0 +1,18 @@
+FROM node:lts-alpine
+
+# install simple http server for serving static content
+RUN npm install -g http-server
+
+WORKDIR /app
+
+COPY ./package*.json ./
+
+RUN npm install
+#shouldn't need to install vue-cli
+#RUN npm install -g @vue/cli
+
+COPY . .
+
+#RUN npm run build
+
+CMD ["npm", "run", "serve"]
