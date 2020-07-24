@@ -682,12 +682,24 @@ export const actions = {
     return api
       .saveOrUpdateAddress(state.customerInfo.custId, address, "address", false)
       .then(response => {
-        commit("ADD_NEW_ADDRESS", { address: address, justSaved: true });
+        let msg = "Successfully saved new address";
+        let msgType = "success";
+        let success = true;
+        if (response.data) {
+          commit("ADD_NEW_ADDRESS", { address: address, justSaved: true });
+        }
+
+        if (!response.data && response.message == "Operation not built yet.") {
+          msg = "/user/saveOrUpdateAddress operation not built yet.";
+          msgType = "info";
+          success = false;
+        }
+       
         commit("SET_MESSAGE", {
-          msg: "Successfully saved new address",
-          msgType: "success"
+          msg: msg,
+          msgType: msgType
         });
-        return address;
+        return success ? address : null;
       })
       .catch(error => {
         if (error.status != 401) {
@@ -714,12 +726,24 @@ export const actions = {
     return api
       .saveOrUpdateAddress(state.customerInfo.custId, address, path, true)
       .then(response => {
-        commit("UPDATE_ADDRESS", newAddress);
+        let msg = "Successfully updated address";
+        let msgType = "success";
+        let success = true;
+        if (response.data) {
+          commit("UPDATE_ADDRESS", newAddress);
+        }
+        if (!response.data && response.message == "Operation not built yet.") {
+          msg = "/user/saveOrUpdateAddress operation not built yet.";
+          msgType = "info";
+          success = false;
+        }
+        
         commit("SET_MESSAGE", {
-          msg: "Successfully updated address",
-          msgType: "success"
+          msg: msg,
+          msgType: msgType
         });
-        return newAddress;
+
+        return success;
       })
       .catch(error => {
         if (error.status != 401) {
