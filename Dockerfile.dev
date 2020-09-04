@@ -16,4 +16,7 @@ COPY . .
 
 #RUN npm run build
 
+ENV VUE_APP_API_PORT 3000
+ENV VUE_APP_API_HOST localhost
+
 CMD ["npm", "run", "serve"]

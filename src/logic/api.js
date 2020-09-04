@@ -31,9 +31,11 @@ const urls = {
   saveOrUpdateAddress: "/user/saveOrUpdateAddress"
 };
 
+const HOST = process.env.VUE_APP_API_HOST;
+const PORT = process.env.VUE_APP_API_PORT;
+
 const apiClient = axios.create({
-  //baseURL: process.env.VUE_APP_API_URL,
-  baseURL: "http://localhost:3000",
+  baseURL: `http://${HOST}:${PORT}`,
   withCredentials: false,
   headers: {
     Accept: "application/json",

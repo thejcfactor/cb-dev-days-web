@@ -694,7 +694,7 @@ export const actions = {
           msgType = "info";
           success = false;
         }
-       
+
         commit("SET_MESSAGE", {
           msg: msg,
           msgType: msgType
@@ -737,7 +737,7 @@ export const actions = {
           msgType = "info";
           success = false;
         }
-        
+
         commit("SET_MESSAGE", {
           msg: msg,
           msgType: msgType
