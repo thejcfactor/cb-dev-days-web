@@ -148,7 +148,7 @@ export const mutations = {
     }
     for (let i = 0; i < orders.length; i++) {
       if (orders[i].orderStatus == "created") {
-        state.newOrder = orders[i];
+        //For now only update the newOrder based on getNewOrder() results
         continue;
       }
       state.orders.push(orders[i]);
