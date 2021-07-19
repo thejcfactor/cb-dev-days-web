@@ -13,7 +13,7 @@ export const state = {
   newOrder: null,
   orders: [],
   orderDetailId: null,
-  orderDetail: null
+  orderDetail: null,
 };
 
 export const mutations = {
@@ -37,7 +37,7 @@ export const mutations = {
       state.newOrder = {
         doc: {
           type: "order",
-          schema: "1.0.0"
+          schema: "1.0.0",
         },
         custId: state.customerInfo.custId,
         orderStatus: "created",
@@ -46,7 +46,7 @@ export const mutations = {
         shippingTotal: 0.0,
         tax: 0.0,
         lineItems: [],
-        grandTotal: 0.0
+        grandTotal: 0.0,
       };
     }
     let index = -1;
@@ -69,12 +69,12 @@ export const mutations = {
         image: product.image,
         price: product.price,
         qty: count,
-        subTotal: product.price * count
+        subTotal: product.price * count,
       });
     }
     let total = _.reduce(
       state.newOrder.lineItems,
-      function(sum, li) {
+      function (sum, li) {
         return sum + li.subTotal;
       },
       0
@@ -95,7 +95,7 @@ export const mutations = {
 
     let total = _.reduce(
       state.newOrder.lineItems,
-      function(sum, li) {
+      function (sum, li) {
         return sum + li.subTotal;
       },
       0
@@ -132,7 +132,7 @@ export const mutations = {
 
     let total = _.reduce(
       state.newOrder.lineItems,
-      function(sum, li) {
+      function (sum, li) {
         return sum + li.subTotal;
       },
       0
@@ -170,14 +170,14 @@ export const mutations = {
     let tmp = state.customerInfo.address;
     state.customerInfo.address = {};
     state.customerInfo.address = tmp;
-  }
+  },
 };
 
 export const actions = {
   login({ commit }, { username, password }) {
     return api
       .login(username, password)
-      .then(response => {
+      .then((response) => {
         let success = true;
         let msg = "";
         let msgType = "";
@@ -221,11 +221,11 @@ export const actions = {
         commit("SET_CUSTOMER_INFO", customerInfo);
         commit("SET_MESSAGE", {
           msg: msg,
-          msgType: msgType
+          msgType: msgType,
         });
         return success;
       })
-      .catch(error => {
+      .catch((error) => {
         commit("SET_USER_INFO", null);
         commit("SET_CUSTOMER_INFO", null);
         let msg = error.message;
@@ -237,7 +237,7 @@ export const actions = {
         }
         commit("SET_MESSAGE", {
           msg: msg,
-          msgType: msgType
+          msgType: msgType,
         });
         return false;
       });
@@ -251,7 +251,7 @@ export const actions = {
     commit("SET_ORDER_DETAIL", null);
     commit("SET_MESSAGE", {
       msg: "Session expired.",
-      msgType: "info"
+      msgType: "info",
     });
     commit("SET_LOGIN_MESSAGE", true);
   },
@@ -265,7 +265,7 @@ export const actions = {
     commit("SET_ORDER_DETAIL", null);
     commit("SET_MESSAGE", {
       msg: "Successfully logged out.",
-      msgType: "success"
+      msgType: "success",
     });
     commit("SET_LOGIN_MESSAGE", true);
   },
@@ -275,12 +275,12 @@ export const actions = {
   register({ commit }, user) {
     return api
       .register(user)
-      .then(response => {
+      .then((response) => {
         let success = true;
         if (!response.data && response.message == "Operation not built yet.") {
           commit("SET_MESSAGE", {
             msg: "Registration operation not built yet.",
-            msgType: "info"
+            msgType: "info",
           });
           success = false;
         } else {
@@ -289,13 +289,13 @@ export const actions = {
           commit("SET_CUSTOMER_INFO", acct.customerInfo);
           commit("SET_MESSAGE", {
             msg: "Successfully registered user.  Please login.",
-            msgType: "success"
+            msgType: "success",
           });
           commit("SET_LOGIN_MESSAGE", true);
         }
         return success;
       })
-      .catch(error => {
+      .catch((error) => {
         commit("SET_USER_INFO", null);
         commit("SET_CUSTOMER_INFO", null);
         if (error.status != 401) {
@@ -304,7 +304,7 @@ export const actions = {
             : error.message;
           commit("SET_MESSAGE", {
             msg: msg,
-            msgType: "error"
+            msgType: "error",
           });
         }
 
@@ -317,7 +317,7 @@ export const actions = {
     if (user && user.token) {
       return api
         .verifyUserSession()
-        .then(response => {
+        .then((response) => {
           if (
             !response.data &&
             response.message == "Operation not built yet."
@@ -326,7 +326,7 @@ export const actions = {
             commit("SET_CUSTOMER_INFO", null);
             commit("SET_MESSAGE", {
               msg: "/user/verifyUserSession operation not built yet.",
-              msgType: "info"
+              msgType: "info",
             });
             api.logout();
           } else if (response.message.includes("Could not find")) {
@@ -334,7 +334,7 @@ export const actions = {
             commit("SET_CUSTOMER_INFO", null);
             commit("SET_MESSAGE", {
               msg: response.message,
-              msgType: "info"
+              msgType: "info",
             });
             api.logout();
           } else {
@@ -344,18 +344,18 @@ export const actions = {
             commit("SET_CUSTOMER_INFO", acct.customerInfo);
             commit("SET_MESSAGE", {
               msg: "Successfully verified user from session.",
-              msgType: "success"
+              msgType: "success",
             });
           }
           return true;
         })
-        .catch(error => {
+        .catch((error) => {
           commit("SET_USER_INFO", null);
           commit("SET_CUSTOMER_INFO", null);
           if (error.status != 401) {
             commit("SET_MESSAGE", {
               msg: error.message,
-              msgType: "error"
+              msgType: "error",
             });
           }
           return false;
@@ -365,30 +365,30 @@ export const actions = {
       commit("SET_CUSTOMER_INFO", null);
       commit("SET_MESSAGE", {
         msg: "No user session found.",
-        msgType: "info"
+        msgType: "info",
       });
       return Promise.resolve(true);
     }
   },
-  removeProductFromCart({ state, commit }, id) {
-    if (state.newOrder.lineItems.length == 1) {
+  removeProductFromCart({ state, commit }, { order, id }) {
+    if (order.lineItems.length == 0) {
       console.log("deleting order");
       return api
         .deleteOrder(state.newOrder._id, true)
-        .then(response => {
+        .then((response) => {
           commit("SET_MESSAGE", {
             msg: "Successfully deleted order",
-            msgType: "success"
+            msgType: "success",
           });
           commit("REMOVE_PRODUCT_FROM_CART", id);
           commit("SET_NEW_ORDER", null);
           return response.message;
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.status != 401) {
             commit("SET_MESSAGE", {
               msg: error.message,
-              msgType: "error"
+              msgType: "error",
             });
           }
           return false;
@@ -396,20 +396,20 @@ export const actions = {
     } else {
       console.log("updating order");
       return api
-        .saveOrUpdateOrder(state.newOrder, true)
-        .then(response => {
+        .saveOrUpdateOrder(order, true)
+        .then((response) => {
           commit("REMOVE_PRODUCT_FROM_CART", id);
           commit("SET_MESSAGE", {
             msg: "Successfully updated new order",
-            msgType: "success"
+            msgType: "success",
           });
           return response.message;
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.status != 401) {
             commit("SET_MESSAGE", {
               msg: error.message,
-              msgType: "error"
+              msgType: "error",
             });
           }
           return false;
@@ -420,18 +420,18 @@ export const actions = {
     commit("UPDATE_NEW_ORDER_LINE_ITEM_QTY", lineItem);
     return api
       .saveOrUpdateOrder(state.newOrder, true)
-      .then(response => {
+      .then((response) => {
         commit("SET_MESSAGE", {
           msg: "Successfully updated new order",
-          msgType: "success"
+          msgType: "success",
         });
         return response != null;
       })
-      .catch(error => {
+      .catch((error) => {
         if (error.status != 401) {
           commit("SET_MESSAGE", {
             msg: error.message,
-            msgType: "error"
+            msgType: "error",
           });
         }
         return false;
@@ -440,7 +440,7 @@ export const actions = {
   getCustomerById({ state, commit }) {
     return api
       .getCustomer(state.customerInfo.custId)
-      .then(response => {
+      .then((response) => {
         let msg = "Successfully retrieved customer details";
         let msgType = "success";
         let success = true;
@@ -457,15 +457,15 @@ export const actions = {
 
         commit("SET_MESSAGE", {
           msg: msg,
-          msgType: msgType
+          msgType: msgType,
         });
         return success;
       })
-      .catch(error => {
+      .catch((error) => {
         if (error.status != 401) {
           commit("SET_MESSAGE", {
             msg: error.message,
-            msgType: "error"
+            msgType: "error",
           });
         }
         return false;
@@ -479,7 +479,7 @@ export const actions = {
 
     return api
       .getCustomerOrders(state.customerInfo.custId)
-      .then(response => {
+      .then((response) => {
         let success = false;
         let msg = "Unable to retrieve customer orders.";
         let msgType = "warning";
@@ -504,16 +504,16 @@ export const actions = {
         commit("SET_ORDERS", orders);
         commit("SET_MESSAGE", {
           msg: msg,
-          msgType: msgType
+          msgType: msgType,
         });
         return success;
       })
-      .catch(error => {
+      .catch((error) => {
         commit("SET_ORDERS", []);
         if (error.status != 401) {
           commit("SET_MESSAGE", {
             msg: error.message,
-            msgType: "error"
+            msgType: "error",
           });
         }
         return false;
@@ -524,7 +524,7 @@ export const actions = {
       let custId = state.customerInfo.custId;
       return api
         .getNewOrder(custId)
-        .then(response => {
+        .then((response) => {
           let success = false;
           let msg = "Unable to retrieve order details.";
           let msgType = "warning";
@@ -549,15 +549,15 @@ export const actions = {
           commit("SET_NEW_ORDER", newOrder);
           commit("SET_MESSAGE", {
             msg: msg,
-            msgType: msgType
+            msgType: msgType,
           });
           return success;
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.status != 401) {
             commit("SET_MESSAGE", {
               msg: error.message,
-              msgType: "error"
+              msgType: "error",
             });
           }
           return false;
@@ -573,7 +573,7 @@ export const actions = {
     //TODO:  check if same orderDetailId as last
     return api
       .getOrder(state.orderDetailId)
-      .then(response => {
+      .then((response) => {
         let msg = "Successfully retrieved order details";
         let msgType = "success";
         let success = true;
@@ -589,17 +589,17 @@ export const actions = {
 
         commit("SET_MESSAGE", {
           msg: msg,
-          msgType: msgType
+          msgType: msgType,
         });
         return success;
       })
-      .catch(error => {
+      .catch((error) => {
         commit("SET_ORDER_DETAIL_ID", null);
         commit("SET_ORDER_DETAIL", null);
         if (error.status != 401) {
           commit("SET_MESSAGE", {
             msg: error.message,
-            msgType: "error"
+            msgType: "error",
           });
         }
         return false;
@@ -611,19 +611,19 @@ export const actions = {
     if (state.newOrder.orderId != null) {
       return api
         .saveOrUpdateOrder(state.newOrder, true)
-        .then(response => {
+        .then((response) => {
           commit("SET_MESSAGE", {
             msg: "Successfully updated new order",
-            msgType: "success"
+            msgType: "success",
           });
           return response;
         })
-        .catch(error => {
+        .catch((error) => {
           commit("REMOVE_PRODUCT_FROM_CART", product.prodId);
           if (error.status != 401) {
             commit("SET_MESSAGE", {
               msg: error.message,
-              msgType: "error"
+              msgType: "error",
             });
           }
           return false;
@@ -631,20 +631,20 @@ export const actions = {
     } else {
       return api
         .saveOrUpdateOrder(state.newOrder, false)
-        .then(response => {
+        .then((response) => {
           commit("UPDATE_NEW_ORDER", { order: response.data, justSaved: true });
           commit("SET_MESSAGE", {
             msg: "Successfully saved new order",
-            msgType: "success"
+            msgType: "success",
           });
           return true;
         })
-        .catch(error => {
+        .catch((error) => {
           commit("REMOVE_PRODUCT_FROM_CART", product.prodId);
           if (error.status != 401) {
             commit("SET_MESSAGE", {
               msg: error.message,
-              msgType: "error"
+              msgType: "error",
             });
           }
           return false;
@@ -681,7 +681,7 @@ export const actions = {
 
     return api
       .saveOrUpdateAddress(state.customerInfo.custId, address, "address", false)
-      .then(response => {
+      .then((response) => {
         let msg = "Successfully saved new address";
         let msgType = "success";
         let success = true;
@@ -697,15 +697,15 @@ export const actions = {
 
         commit("SET_MESSAGE", {
           msg: msg,
-          msgType: msgType
+          msgType: msgType,
         });
         return success ? address : null;
       })
-      .catch(error => {
+      .catch((error) => {
         if (error.status != 401) {
           commit("SET_MESSAGE", {
             msg: error.message,
-            msgType: "error"
+            msgType: "error",
           });
         }
         return false;
@@ -725,7 +725,7 @@ export const actions = {
 
     return api
       .saveOrUpdateAddress(state.customerInfo.custId, address, path, true)
-      .then(response => {
+      .then((response) => {
         let msg = "Successfully updated address";
         let msgType = "success";
         let success = true;
@@ -740,16 +740,16 @@ export const actions = {
 
         commit("SET_MESSAGE", {
           msg: msg,
-          msgType: msgType
+          msgType: msgType,
         });
 
         return success;
       })
-      .catch(error => {
+      .catch((error) => {
         if (error.status != 401) {
           commit("SET_MESSAGE", {
             msg: error.message,
-            msgType: "error"
+            msgType: "error",
           });
         }
         return false;
@@ -759,41 +759,41 @@ export const actions = {
     commit("UPDATE_NEW_ORDER", { order: orderUpdates, justSaved: false });
     return api
       .saveOrUpdateOrder(state.newOrder, true)
-      .then(response => {
+      .then((response) => {
         commit("SET_NEW_ORDER", null);
         commit("SET_MESSAGE", {
           msg: "Successfully processed new order",
-          msgType: "success"
+          msgType: "success",
         });
         return true;
       })
-      .catch(error => {
+      .catch((error) => {
         if (error.status != 401) {
           commit("SET_MESSAGE", {
             msg: error.message,
-            msgType: "error"
+            msgType: "error",
           });
         }
         return false;
       });
-  }
+  },
 };
 
 export const getters = {
-  firstName: state => {
+  firstName: (state) => {
     if (!state.customerInfo || !state.customerInfo.custName) {
       return null;
     }
     return state.customerInfo.custName.firstName;
   },
-  cartCount: state => {
+  cartCount: (state) => {
     if (state.newOrder == null) {
       return "0";
     }
 
     let count = _.reduce(
       state.newOrder.lineItems,
-      function(memo, prd) {
+      function (memo, prd) {
         return memo + prd.qty;
       },
       0
@@ -801,14 +801,14 @@ export const getters = {
 
     return `${count}`;
   },
-  newOrderSubTotal: state => {
+  newOrderSubTotal: (state) => {
     if (state.newOrder == null) {
       return 0;
     }
 
     let subTotal = _.reduce(
       state.newOrder.lineItems,
-      function(sum, prd) {
+      function (sum, prd) {
         return sum + prd.subTotal;
       },
       0
@@ -816,7 +816,7 @@ export const getters = {
 
     return subTotal;
   },
-  customerAddresses: state => {
+  customerAddresses: (state) => {
     let addresses = [];
     if (state.customerInfo != null) {
       for (let [key, value] of Object.entries(state.customerInfo.address)) {
@@ -826,5 +826,5 @@ export const getters = {
       }
     }
     return addresses;
-  }
+  },
 };

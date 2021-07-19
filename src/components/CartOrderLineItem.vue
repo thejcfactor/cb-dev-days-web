@@ -14,7 +14,7 @@
         <v-row>
           <v-col>
             <div class="d-flex flex-column justify-start align-start">
-              <div class="title">{{ lineItem.dispName }}</div>
+              <div class="title">{{ lineItemLocal.dispName }}</div>
               <div class="caption in-stock">In Stock</div>
             </div>
           </v-col>
@@ -40,7 +40,7 @@
                 <input
                   type="text"
                   class="cart-count-input"
-                  v-model="lineItem.qty"
+                  v-model="lineItemLocal.qty"
                 />
                 <v-btn
                   icon
@@ -48,7 +48,7 @@
                   outlined
                   class="align-self-center mr-1"
                   @click="removeProductQty"
-                  :disabled="lineItem.qty <= 1"
+                  :disabled="lineItemLocal.qty <= 1"
                 >
                   <v-icon>mdi-minus</v-icon>
                 </v-btn>
@@ -75,29 +75,40 @@ export default {
     lineItem: {
       type: Object,
       required: true,
-      default: null
-    }
+      default: null,
+    },
   },
-  data: () => ({}),
+  data: () => ({
+    lineItemLocal: null
+  }),
+  created: function () {
+    this.lineItemLocal = JSON.parse(JSON.stringify(this.lineItem))
+  },
   methods: {
-    addProductQty: function() {
-      this.lineItem.qty += 1;
-      this.$emit("addProductQty", this.lineItem);
+    addProductQty: function () {
+      this.lineItemLocal.qty += 1;
+      console.log("emitting");
+      this.$emit("addProductQty", this.lineItem, 1);
     },
-    removeProductQty: function() {
-      this.lineItem.qty -= 1;
-      this.$emit("removeProductQty", this.lineItem);
+    removeProductQty: function () {
+      this.lineItemLocal.qty -= 1;
+      this.$emit("removeProductQty", this.lineItem, -1);
     },
-    onDeleteItemClick: function() {
+    onDeleteItemClick: function () {
       this.$emit("deleteItem", this.lineItem);
-    }
+    },
   },
   computed: {
-    lineItemPrice: function() {
+    lineItemPrice: function () {
       //let price = this.lineItem.price / this.lineItem.qty;
-      return formatCurrency(this.lineItem.price);
-    }
-  }
+      return formatCurrency(this.lineItemLocal.price);
+    },
+  },
+  watch: {
+    lineItem: function(newVal) {
+      this.lineItemLocal = JSON.parse(JSON.stringify(newVal))
+    },
+  },
 };
 </script>
 
