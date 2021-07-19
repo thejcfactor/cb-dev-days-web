@@ -162,8 +162,8 @@
             >
               <CartOrderLineItem
                 :lineItem="lineItem"
-                @addProductQty="updateProductQty"
-                @removeProductQty="updateProductQty"
+                @addProductQty="onUpdateProductQty"
+                @removeProductQty="onUpdateProductQty"
                 @deleteItem="onDeleteItem"
               ></CartOrderLineItem>
             </v-row>
@@ -233,9 +233,7 @@
     </v-row>
     <v-dialog v-model="showNewAddressForm" persistent max-width="400">
       <v-card>
-        <v-card-title class="headline">
-          New Address
-        </v-card-title>
+        <v-card-title class="headline"> New Address </v-card-title>
         <v-card-text>
           <v-row>
             <v-col>
@@ -337,7 +335,7 @@ export default {
   name: "Cart",
   components: {
     CartOrderLineItem,
-    Loader
+    Loader,
   },
 
   data: () => ({
@@ -354,36 +352,36 @@ export default {
       address2: null,
       city: null,
       state: null,
-      zipCode: null
+      zipCode: null,
     },
     shippingMethods: [
       {
         id: 0,
         name: "Standard",
-        price: 3.99
+        price: 3.99,
       },
       {
         id: 1,
         name: "3 - Business Days",
-        price: 7.99
+        price: 7.99,
       },
       {
         id: 2,
         name: "Next Day Air",
-        price: 15.99
-      }
+        price: 15.99,
+      },
     ],
     selectedShippingMethod: 0,
     showLoader: false,
     loaderMessage: "Processing order...",
     rules: {
-      required: value => !!value || "Required."
+      required: (value) => !!value || "Required.",
     },
     showAlert: false,
     alertMessage: "",
-    alertType: undefined
+    alertType: undefined,
   }),
-  created: function() {
+  created: function () {
     //only check for new/pending order if getting user from session
     if (this.user == null) {
       this.showLoader = true;
@@ -392,42 +390,42 @@ export default {
     }
   },
   methods: {
-    checkSession: function() {
+    checkSession: function () {
       let self = this;
       this.checkForUserSession()
-        .then(response => {
+        .then((response) => {
           if (self.user == null) {
             self.showLoader = false;
-            self.$router.push({ path: "login" }).catch(error => {});
+            self.$router.push({ path: "login" }).catch((error) => {});
           } else {
             self.checkOrder();
           }
         })
-        .catch(error => {
+        .catch((error) => {
           self.showLoader = false;
-          self.$router.push({ path: "login" }).catch(error => {});
+          self.$router.push({ path: "login" }).catch((error) => {});
         });
     },
-    checkOrder: function() {
+    checkOrder: function () {
       let self = this;
       this.checkForNewOrder()
-        .then(response => {
+        .then((response) => {
           self.showLoader = false;
           if (!response) {
             self.showMessage();
           }
         })
-        .catch(error => {
+        .catch((error) => {
           self.showLoader = false;
           self.showMessage();
         });
     },
-    showMessage: function() {
+    showMessage: function () {
       this.alertMessage = this.message.msg;
       this.alertType = this.message.msgType;
       this.showAlert = true;
     },
-    getShippingAddressInfo: function(infoType) {
+    getShippingAddressInfo: function (infoType) {
       if (
         !this.customer ||
         !this.selectedShippingAddress ||
@@ -438,7 +436,7 @@ export default {
 
       return this.getAddressInfo(infoType, this.shippingAddress);
     },
-    getBillingAddressInfo: function(infoType) {
+    getBillingAddressInfo: function (infoType) {
       if (
         !this.customer ||
         !(this.selectedBillingAddress || this.billingSameAsShipping) ||
@@ -449,7 +447,7 @@ export default {
 
       return this.getAddressInfo(infoType, this.billingAddress);
     },
-    getAddressInfo: function(infoType, address) {
+    getAddressInfo: function (infoType, address) {
       let info = "";
       if (infoType == "street") {
         info = address.address;
@@ -464,10 +462,10 @@ export default {
       }
       return info;
     },
-    onAddAddressClick: function() {
+    onAddAddressClick: function () {
       this.showNewAddressForm = true;
     },
-    onSaveNewAddressClick: function() {
+    onSaveNewAddressClick: function () {
       this.showNewAddressForm = false;
       if (!this.validateNewAddress()) {
         this.infoAlertHeader = "Missing Information";
@@ -477,7 +475,7 @@ export default {
         return;
       }
 
-      let match = states.find(s => s.name == this.newAddress.state);
+      let match = states.find((s) => s.name == this.newAddress.state);
       if (match) {
         this.newAddress.state = match.abbr;
       }
@@ -486,7 +484,7 @@ export default {
       this.showLoader = true;
       this.loaderMessage = "Saving address...";
       this.saveNewAddress(this.newAddress)
-        .then(response => {
+        .then((response) => {
           self.showLoader = false;
           self.showMessage();
           if (response) {
@@ -495,12 +493,12 @@ export default {
             self.customerAddresses.push(response["name"]);
           }
         })
-        .catch(error => {
+        .catch((error) => {
           self.showLoader = false;
           self.showMessage();
         });
     },
-    validateNewAddress: function() {
+    validateNewAddress: function () {
       if (
         this.newAddress.address &&
         this.newAddress.address != "" &&
@@ -515,34 +513,45 @@ export default {
       }
       return false;
     },
-    updateProductQty: function(lineItem) {
+    onUpdateProductQty: function (lineItem, qty) {
       let self = this;
+      lineItem.qty += qty;
       this.updateProductQty(lineItem)
-        .then(response => {
+        .then((response) => {
           if (!response) {
             self.showMessage();
           }
         })
-        .catch(error => {
+        .catch((error) => {
           self.showMessage();
         });
     },
-    onDeleteItem: function(lineItem) {
+    onDeleteItem: function (lineItem) {
       let self = this;
-      this.removeProductFromCart(lineItem.prodId)
-        .then(response => {
+      let newOrder = self.updateOrderLineItems(
+        JSON.parse(JSON.stringify(self.order)),
+        lineItem
+      );
+
+      let payload = {
+        order: newOrder,
+        id: lineItem.prodId,
+      };
+
+      this.removeProductFromCart(payload)
+        .then((response) => {
           if (!response) {
             self.showMessage();
           }
           if (response.includes("deleted")) {
-            this.$router.push({ path: "home" }).catch(error => {});
+            this.$router.push({ path: "home" }).catch((error) => {});
           }
         })
-        .catch(error => {
+        .catch((error) => {
           self.showMessage();
         });
     },
-    onPurchaseClick: function() {
+    onPurchaseClick: function () {
       if (!this.billingAddress || !this.shippingAddress) {
         this.infoAlertHeader = "Missing Information";
         this.infoAlertMessage =
@@ -553,35 +562,57 @@ export default {
       let name = `${this.customer.custName.firstName} ${this.customer.custName.lastName}`;
       let billingInfo = {
         name: name,
-        address: this.billingAddress
+        address: this.billingAddress,
       };
       let shippingInfo = {
         name: name,
-        address: this.shippingAddress
+        address: this.shippingAddress,
       };
       let payload = {
         billingInfo: billingInfo,
         shippingInfo: shippingInfo,
         shippingTotal: this.shipping,
         tax: this.tax,
-        grandTotal: this.orderTotal
+        grandTotal: this.orderTotal,
       };
       let self = this;
       this.showLoader = true;
       this.loaderMessage = "Processing order...";
       this.placeOrder(payload)
-        .then(response => {
+        .then((response) => {
           self.showLoader = false;
           if (response) {
-            this.$router.push({ path: "orders" }).catch(error => {});
+            this.$router.push({ path: "orders" }).catch((error) => {});
           } else {
             self.showMessage();
           }
         })
-        .catch(error => {
+        .catch((error) => {
           self.showLoader = false;
           self.showMessage();
         });
+    },
+    updateOrderLineItems: function (order, lineItem) {
+      let index = -1;
+      for (let i = 0; i < order.lineItems.length; i++) {
+        if (order.lineItems[i].prodId == lineItem.prodId) {
+          index = i;
+          break;
+        }
+      }
+      if (index >= 0) {
+        order.lineItems.splice(index, 1);
+      }
+
+      let total = _.reduce(
+        order.lineItems,
+        function (sum, li) {
+          return sum + li.subTotal;
+        },
+        0
+      );
+      order.grandTotal = total;
+      return order;
     },
     ...mapActions("userStore", [
       "checkForUserSession",
@@ -590,56 +621,56 @@ export default {
       "updateProductQty",
       "removeProductFromCart",
       "placeOrder",
-      "saveNewAddress"
-    ])
+      "saveNewAddress",
+    ]),
   },
   computed: {
-    states: function() {
-      return _.map(states, state => state.name);
+    states: function () {
+      return _.map(states, (state) => state.name);
     },
-    shipping: function() {
+    shipping: function () {
       let match = _.findWhere(this.shippingMethods, {
-        id: this.selectedShippingMethod
+        id: this.selectedShippingMethod,
       });
 
       let cost = typeof match != "undefined" ? match.price : 0.0;
 
       return cost;
     },
-    formattedShipping: function() {
+    formattedShipping: function () {
       return formatCurrency(this.shipping);
     },
-    tax: function() {
+    tax: function () {
       let tax = this.subTotal * 0.0825;
       return tax;
     },
-    formattedTax: function() {
+    formattedTax: function () {
       return formatCurrency(this.tax);
     },
-    orderTotal: function() {
+    orderTotal: function () {
       let total = this.subTotal + this.tax + this.shipping;
       return total;
     },
-    formattedOrderTotal: function() {
+    formattedOrderTotal: function () {
       return formatCurrency(this.orderTotal);
     },
-    formattedSubTotal: function() {
+    formattedSubTotal: function () {
       return formatCurrency(this.subTotal);
     },
     customerAddresses: {
-      get: function() {
+      get: function () {
         if (this.customer != null) {
           return Object.keys(this.customer.address);
         }
         return null;
       },
-      set: function(newAddress) {
+      set: function (newAddress) {
         if (!Object.keys(this.customer.address).includes(newAddress)) {
           console.log("new address not included");
         }
-      }
+      },
     },
-    shippingAddress: function() {
+    shippingAddress: function () {
       if (this.selectedShippingAddress && this.customer.address) {
         //let addr = _.pick(this.customer.address, this.selectedShippingAddress);
         //return addr;
@@ -647,7 +678,7 @@ export default {
       }
       return null;
     },
-    billingAddress: function() {
+    billingAddress: function () {
       if (this.customer.address) {
         if (this.billingSameAsShipping && this.selectedShippingAddress) {
           return this.customer.address[this.selectedShippingAddress];
@@ -658,16 +689,16 @@ export default {
       return null;
     },
     ...mapState({
-      user: state => state.userStore.userInfo,
-      message: state => state.userStore.message,
-      customer: state => state.userStore.customerInfo,
-      order: state => state.userStore.newOrder
+      user: (state) => state.userStore.userInfo,
+      message: (state) => state.userStore.message,
+      customer: (state) => state.userStore.customerInfo,
+      order: (state) => state.userStore.newOrder,
     }),
     ...mapGetters("userStore", {
       itemCount: "cartCount",
-      subTotal: "newOrderSubTotal"
-    })
-  }
+      subTotal: "newOrderSubTotal",
+    }),
+  },
 };
 </script>
 
